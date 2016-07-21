@@ -3,7 +3,7 @@ local util = require 'autograd.util'
 local functionalize = require('autograd.nnwrapper').functionalize
 local nn = functionalize('nn')
 
-return function(opt, params)
+return function(opt, params, layers)
    -- options:
    opt = opt or {}
    local inputFeatures = opt.inputFeatures or 10
