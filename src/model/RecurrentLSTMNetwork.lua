@@ -29,7 +29,7 @@ return function(opt, params)
      layers.lstm_bn = {lstm_bn}
      layers.cell_bn = {cell_bn}
 
-     for i=2,#maxBatchNormalizationLayers do
+     for i=2,maxBatchNormalizationLayers do
        local lstm_bn = nn.BatchNormalization(4 * hiddenFeatures)
        local cell_bn = nn.BatchNormalization(hiddenFeatures)
        layers.lstm_bn[i] = lstm_bn
