@@ -1273,6 +1273,76 @@ local tests = {
       tester:assert(gradcheck(loss, params, i), 'incorrect gradients')
    end,
 
+   Models_AttentionLSTMNetwork = function()
+      -- Define RNN:
+      local inputFeatures = 5
+      local hiddenFeatures = 5
+      local subjectChoices = 5
+      local subjectFeatures = 5
+      local f,params = autograd.model.AttentionLSTMNetwork({
+         inputFeatures = inputFeatures,
+         hiddenFeatures = hiddenFeatures,
+         subjectChoices = subjectChoices,
+         subjectFeatures = subjectFeatures,
+         outputType = 'last',
+      })
+
+      -- Params:
+      params[1].Wx:normal(0,0.01)
+      params[1].bx:normal(0,0.01)
+      params[1].Wh:normal(0,0.01)
+      params[1].bh:normal(0,0.01)
+      params[1].Wa:normal(0,0.01)
+      params[1].ba:normal(0,0.01)
+      params[1].W_att_subject:normal(0,0.01)
+      params[1].b_att_subject:normal(0,0.01)
+      params[1].W_att_h:normal(0,0.01)
+      params[1].b_att_h:normal(0,0.01)
+      params[1].W_att:normal(0,0.01)
+      params[1].b_att:normal(0,0.01)
+
+      -- Loss
+      local loss = function(params, input, subject)
+         local v = f(params, input, subject)
+         return torch.sum(v)
+      end
+
+      -- Test on sequence data:
+      local i = torch.randn(3, 30, inputFeatures)
+      local s = torch.randn(3, subjectChoices, subjectFeatures)
+      local o = loss(params, i, s)
+      local g = autograd(loss)(params, i, s)
+
+      -- Checks
+      tester:asserteq(type(g), 'table', 'gradients could not be computed')
+
+      -- Gradcheck:
+      tester:assert(gradcheck(loss, params, i, s), 'incorrect gradients')
+
+      -- Define RNN with all states exposed:
+      local f,params = autograd.model.AttentionLSTMNetwork({
+        inputFeatures = inputFeatures,
+        hiddenFeatures = hiddenFeatures,
+        subjectChoices = subjectChoices,
+        subjectFeatures = subjectFeatures,
+        outputType = 'all',
+      })
+
+      -- Loss
+      local loss = function(params, input, subject)
+         local v = f(params, input, subject)
+         return torch.sum(v)
+      end
+
+      -- Test on sequence data:
+      local o = loss(params, i, s)
+      local g = autograd(loss)(params, i, s)
+
+      -- Checks
+      tester:asserteq(type(g), 'table', 'gradients could not be computed')
+      tester:assert(gradcheck(loss, params, i, s), 'incorrect gradients')
+   end,
+
     Modules_LayerNormalization = function()
       local f,params = autograd.module.LayerNormalization({nOutputs = 100})
 
